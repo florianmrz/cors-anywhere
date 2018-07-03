@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Demo of CORS Anywhere</title>
+<title>Demo</title>
 <meta name="viewport" content="width=device-width">
 <style>
 html, body {
@@ -11,6 +11,8 @@ html, body {
   padding: 3px;
   font-family: Arial, sans-serif;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
 }
 * {
   -moz-box-sizing: border-box;
@@ -33,23 +35,27 @@ textarea {
   height: 100%;
 }
 #top {
-  height: 180px;
   position: relative;
-
 }
 #bottom {
-  height: 100%;
-  margin-top: -180px;
-  padding-top: 180px;
+  flex: 1;
+  margin-top: 15px
 }
 </style>
 </head>
 <body>
 <div id="top">
-  CORS Anywhere demo &bull; <a href="https://github.com/Rob--W/cors-anywhere/">Github</a> &bull; <a href="http://cors-anywhere.herokuapp.com">Live server</a>.
   <label>
-    Url to be fetched (example: <a href="//robwu.nl/dump.php">robwu.nl/dump.php</a>)
+    Url
     <input type="url" id="url" value="">
+  </label>
+  <label>
+    Cookies
+    <input type="url" id="cookies" value="">
+  </label>
+  <label>
+    Origin
+    <input type="url" id="origin" value="">
   </label>
   <label>
     If using POST, enter the data:
@@ -64,10 +70,15 @@ textarea {
 </div>
 
 <script>
-  var cors_api_url = 'https://cors-anywhere.herokuapp.com/';
+  var cors_api_url = 'http://localhost:8080/';
   function doCORSRequest(options, printResult) {
     var x = new XMLHttpRequest();
+    document.cookie = options.cookie;
     x.open(options.method, cors_api_url + options.url);
+    x.withCredentials = true;
+    if(options.origin) {
+      x.setRequestHeader('x-cors-origin', options.origin);
+    }
     x.onload = x.onerror = function() {
       printResult(
         options.method + ' ' + options.url + '\n' +
@@ -76,7 +87,7 @@ textarea {
       );
     };
     if (/^POST/i.test(options.method)) {
-      x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      x.setRequestHeader('Content-Type', 'application/json');
     }
     x.send(options.data);
   }
@@ -84,6 +95,8 @@ textarea {
   // Bind event
   (function() {
     var urlField = document.getElementById('url');
+    var cookieField = document.getElementById('cookies');
+    var originField = document.getElementById('origin');
     var dataField = document.getElementById('data');
     var outputField = document.getElementById('output');
     document.getElementById('get').onclick =
@@ -92,16 +105,14 @@ textarea {
       doCORSRequest({
         method: this.id === 'post' ? 'POST' : 'GET',
         url: urlField.value,
-        data: dataField.value
+        data: dataField.value,
+        cookie: cookieField.value,
+        origin: originField.value,
       }, function printResult(result) {
         outputField.value = result;
       });
     };
   })();
-  if (typeof console === 'object') {
-    console.log('// To test a local CORS Anywhere server, set cors_api_url. For example:');
-    console.log('cors_api_url = "http://localhost:8080/"');
-  }
 </script>
 </body>
 </html>
